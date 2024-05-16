@@ -94,7 +94,7 @@ class TextSplitter:
             
         elif self.splitter == "recursive":
             #https://python.langchain.com/docs/modules/data_connection/document_transformers/recursive_text_splitter
-            splitter = RecursiveCharacterTextSplitter(chunk_size = chunk_size, chunk_overlap = chunk_overlap)
+            splitter = RecursiveCharacterTextSplitter(chunk_size = chunk_size, chunk_overlap = chunk_overlap, separators =["\n\n"])
             return self.modify_splitter(data=data, splitter=splitter)
 
         elif self.splitter == "token":

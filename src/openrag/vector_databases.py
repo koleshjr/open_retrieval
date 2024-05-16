@@ -5,25 +5,26 @@ from langchain_community.vectorstores import FAISS, Chroma, Milvus, Qdrant, DocA
 from qdrant_client import QdrantClient
 
 class VectorDatabase:
-    def __init__(self, vector_store, index_name):
+    def __init__(self, vector_store):
         """
         A class for managing vector databases.
 
         Args:
             vector_store (str): The name of the vector store to use.
-            index_name (str): The name of the index to use.
+            
         """
         self.vector_store = vector_store
-        self.index_name = index_name
+        
 
-    def create_index(self, embedding_function: str, docs: List[Document], index_dir: Optional[str] = None, **kwargs):
+    def create_index(self, embedding_function: str, docs: List[Document], index_name: str, index_dir: Optional[str] = None, **kwargs):
         """
         Creates an index for the given documents using the specified embedding function.
 
         Args:
             embedding_function (str): The name of the embedding function to use.
             docs (List[Document]): The list of documents to index.
-            index_dir (Optional[str]): The directory to store the index in. If not specified, the index will be stored in memory.
+            index_name (str): The name of the index you would like to save the embeddings
+            index_dir (Optional[str]): The directory to store the index in.
             **kwargs: Additional arguments specific to the vector store being used.
 
         Returns:
@@ -31,12 +32,12 @@ class VectorDatabase:
         """
         if index_dir:
             if os.path.exists(index_dir):
-                persist_directory = os.path.join(index_dir, self.index_name)
+                persist_directory = os.path.join(index_dir, index_name)
             else:
                 os.makedirs(index_dir)
-                persist_directory = os.path.join(index_dir, self.index_name)
+                persist_directory = os.path.join(index_dir, index_name)
         else:
-            persist_directory = self.index_name
+            persist_directory = index_name
 
         def index_exists(index_path: str):
             return os.path.exists(index_path)
@@ -55,9 +56,9 @@ class VectorDatabase:
             host = kwargs.get('host','localhost')
             port = kwargs.get('port', 19530)
             if index_exists(persist_directory):
-                vector_index = Milvus(embedding_function=embedding_function, connection_args = {"host": host, "port": port, "collection_name": self.index_name})
+                vector_index = Milvus(embedding_function=embedding_function, connection_args = {"host": host, "port": port, "collection_name": index_name})
             else:
-                vector_index = Milvus.from_documents(docs, embedding_function, collection_name=self.index_name,
+                vector_index = Milvus.from_documents(docs, embedding_function, collection_name=index_name,
                                                     connection_args={'host': host,
                                                                     'port': port})
             return vector_index
@@ -65,15 +66,15 @@ class VectorDatabase:
         elif self.vector_store == 'qdrant':
             qdrant_environment = kwargs.get('environment', 'disk')
             if qdrant_environment == 'memory':
-                vector_index = Qdrant.from_documents(docs, embedding_function, collection_name=self.index_name,
+                vector_index = Qdrant.from_documents(docs, embedding_function, collection_name=index_name,
                                                       location=":memory:")
                 return vector_index
             elif qdrant_environment == 'disk':
-                if index_exists(os.path.join(index_dir, self.index_name)):
+                if index_exists(os.path.join(index_dir, index_name)):
                     client = QdrantClient(path = index_dir)
-                    Qdrant(client = client, collection_name = self.index_name, embeddings=embedding_function)
+                    Qdrant(client = client, collection_name = index_name, embeddings=embedding_function)
                 else:
-                    vector_index = Qdrant.from_documents(docs, embedding_function, collection_name=self.index_name,
+                    vector_index = Qdrant.from_documents(docs, embedding_function, collection_name=index_name,
                                                       path=index_dir)
                 return vector_index
 
@@ -86,8 +87,8 @@ class VectorDatabase:
             return vector_index
 
         elif self.vector_store == 'faiss':
-            if index_exists(os.path.join(index_dir, self.index_name)):
-                vector_index = FAISS(persist_directory=persist_directory, embedding_function=embedding_function)
+            if index_exists(os.path.join(index_dir, index_name)):
+                vector_index = FAISS.load_local(folder_path=os.path.join(index_dir,index_name), embeddings=embedding_function, index_name='index', allow_dangerous_deserialization=True)
             else:
                 vector_index = FAISS.from_documents(docs, embedding_function)
                 vector_index.save_local(persist_directory)

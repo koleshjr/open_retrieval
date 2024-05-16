@@ -28,7 +28,8 @@ class EmbeddingProvider:
             if model_name:
                 return HuggingFaceEmbeddings(model_name=model_name)
             else:
-                return HuggingFaceEmbeddings(model_name='Alibaba-NLP/gte-large-en-v1.5')
+                model_kwargs = {'trust_remote_code': True}
+                return HuggingFaceEmbeddings(model_name='Alibaba-NLP/gte-large-en-v1.5',model_kwargs = model_kwargs)
 
         elif self.embedding_provider == "ollama":
             if model_name:

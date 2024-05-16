@@ -2,7 +2,7 @@ import bs4
 import logging
 from typing import Optional
 from langchain_community.document_loaders.csv_loader import CSVLoader   
-from langchain_community.document_loaders import JSONLoader, PyPDFLoader, WebBaseLoader,UnstructuredWordDocumentLoader,UnstructuredMarkdownLoader,UnstructuredHTMLLoader, UnstructuredPowerPointLoader
+from langchain_community.document_loaders import JSONLoader, UnstructuredPDFLoader, WebBaseLoader,UnstructuredWordDocumentLoader,UnstructuredMarkdownLoader,UnstructuredHTMLLoader, UnstructuredPowerPointLoader
 
 logging.basicConfig(level=logging.INFO)
 class DocumentLoader:
@@ -38,7 +38,7 @@ class DocumentLoader:
                 elif file_path.endswith('.json'):
                     loader = JSONLoader(file_path)
                 elif file_path.endswith('.pdf'):
-                    loader = PyPDFLoader(file_path)
+                    loader =  UnstructuredPDFLoader(file_path)
                 elif file_path.endswith('.html') or file_path.endswith('.htm'):
                     loader = UnstructuredHTMLLoader(file_path)
                 elif file_path.endswith('.md'):

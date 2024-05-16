@@ -23,8 +23,8 @@ class Retriever:
         """
         ranker = Reranker(ranking_model)
         docs =self.vector_database.similarity_search(query=query, k=top_k)
-        results = ranker.rank(query = query, docs = docs)
-        return results[:5]
+        results = ranker.rank(query = query, docs = [doc.page_content for doc in docs])
+        return results
     
     def ranked_retrieval_with_rephrasing(self, query: str, rephrasing_model: str, ranking_model:str, top_k: int =5):
         """
@@ -39,8 +39,8 @@ class Retriever:
             docs.extend(results)
 
         ranker = Reranker(ranking_model)
-        results = ranker.rank(query = query, docs = docs)
-        return results[:5]
+        results = ranker.rank(query = query, docs = [doc.page_content for doc in docs])
+        return results
     
     def ranked_retrieval_with_llm(self, query: str, classifier_model:str, ranking_model:str, top_k: int =15):
         """
@@ -51,15 +51,15 @@ class Retriever:
         docs =self.vector_database.similarity_search(query=query, k=top_k)
         yes_results =[]
         for doc in docs:
-            pred = classifier.predict_json(question = query, content=doc)
+            pred = classifier.predict_json(question = query, content=doc.page_content)
             if pred['result']['label'] == 'yes':
                 yes_results.append(doc)
         
         if len(yes_results)>5:
             ranker = Reranker(ranking_model)
-            results = ranker.rank(query = query, docs = yes_results)
+            results = ranker.rank(query = query, docs = [doc.page_content for doc in yes_results])
 
-        return results[:5]
+        return results
 
 
 
