@@ -2,6 +2,7 @@ import os
 from typing import Optional, List
 from langchain.docstore.document import Document
 from langchain_community.vectorstores import FAISS, Chroma, Milvus, Qdrant, DocArrayInMemorySearch
+from qdrant_client import QdrantClient
 
 class VectorDatabase:
     def __init__(self, vector_store, index_name):
@@ -37,19 +38,28 @@ class VectorDatabase:
         else:
             persist_directory = self.index_name
 
+        def index_exists(index_path: str):
+            return os.path.exists(index_path)
+
         if self.vector_store == 'chroma':
-            vector_index = Chroma.from_documents(docs, embedding_function, persist_directory=persist_directory)
-            return vector_index.persist()
+            if index_exists(persist_directory):
+                vector_index = Chroma(persist_directory=persist_directory, embedding_function=embedding_function)
+            else:
+                vector_index = Chroma.from_documents(docs, embedding_function, persist_directory=persist_directory)
+                vector_index.persist()
+            return vector_index
 
 
 
         elif self.vector_store == 'milvus':
             host = kwargs.get('host','localhost')
             port = kwargs.get('port', 19530)
-            vector_index = Milvus.from_documents(docs, embedding_function, collection_name=self.index_name,
-                                                  connection_args={'host': host,
-                                                                   'port': port})
-
+            if index_exists(persist_directory):
+                vector_index = Milvus(embedding_function=embedding_function, connection_args = {"host": host, "port": port, "collection_name": self.index_name})
+            else:
+                vector_index = Milvus.from_documents(docs, embedding_function, collection_name=self.index_name,
+                                                    connection_args={'host': host,
+                                                                    'port': port})
             return vector_index
 
         elif self.vector_store == 'qdrant':
@@ -57,9 +67,15 @@ class VectorDatabase:
             if qdrant_environment == 'memory':
                 vector_index = Qdrant.from_documents(docs, embedding_function, collection_name=self.index_name,
                                                       location=":memory:")
+                return vector_index
             elif qdrant_environment == 'disk':
-                vector_index = Qdrant.from_documents(docs, embedding_function, collection_name=self.index_name,
+                if index_exists(os.path.join(index_dir, self.index_name)):
+                    client = QdrantClient(path = index_dir)
+                    Qdrant(client = client, collection_name = self.index_name, embeddings=embedding_function)
+                else:
+                    vector_index = Qdrant.from_documents(docs, embedding_function, collection_name=self.index_name,
                                                       path=index_dir)
+                return vector_index
 
             else:
                 raise ValueError(
@@ -70,9 +86,14 @@ class VectorDatabase:
             return vector_index
 
         elif self.vector_store == 'faiss':
-            vector_index = FAISS.from_documents(docs, embedding_function)
-            return vector_index.save_local(persist_directory)
+            if index_exists(os.path.join(index_dir, self.index_name)):
+                vector_index = FAISS(persist_directory=persist_directory, embedding_function=embedding_function)
+            else:
+                vector_index = FAISS.from_documents(docs, embedding_function)
+                vector_index.save_local(persist_directory)
+            return vector_index
 
         else:
             raise ValueError(
                 'Invalid vector_store value: Expecting one of chroma, milvus, qdrant, faiss or array')
+        

@@ -16,7 +16,7 @@ class DocumentLoader:
         """
         self.logger = logging.getLogger(__name__)
     
-    def load_and_get_data(self, file_path: Optional[str]= None, url_path: Optional[str] = None):
+    def load(self, file_path: Optional[str]= None, url_path: Optional[str] = None):
             
         """
         Load a document from a file or URL and return its data.

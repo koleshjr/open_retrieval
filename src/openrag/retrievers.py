@@ -7,15 +7,9 @@ from src.openrag.utils.rephrasor import Rephrasor
 from src.openrag.utils.classifier import Classifier
 from src.openrag.utils.config import Config
 class Retriever:
-    def __init__(self, database_name: str, index_name: str, embedding_function:Callable[[Optional[str]], Union[FastEmbedEmbeddings, HuggingFaceEmbeddings, OllamaEmbeddings]], **kwargs) -> None:
-        if database_name == 'chroma':
-            self.vector_database = Chroma(persist_directory=index_name, embedding_function=embedding_function)
-        elif database_name == 'faiss':
-            self.vector_database = FAISS(persist_directory=index_name, embedding_function=embedding_function)
-        elif database_name =='milvus':
-            host = kwargs.get('host', 'localhost')
-            port = kwargs.get('port', 19530)
-            self.vector_database = Milvus(embedding_function=embedding_function, connection_args = {"host": host, "port": port, "collection_name": index_name})
+    def __init__(self, vector_index):
+        self.vector_database = vector_index
+        
     def naive_retrieval(self, query: str, top_k: int = 5 ):
         """
         Naive Retrieval
