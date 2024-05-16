@@ -1,6 +1,3 @@
-from typing import Callable, Optional, Union
-from langchain_community.embeddings import FastEmbedEmbeddings, HuggingFaceEmbeddings, OllamaEmbeddings
-from langchain_community.vectorstores import Chroma, FAISS, Milvus
 from rerankers import Reranker
 from src.openrag.utils.llms import Llm
 from src.openrag.utils.rephrasor import Rephrasor
@@ -21,10 +18,18 @@ class Retriever:
         """
         Retrieval With reranking
         """
-        ranker = Reranker(ranking_model)
+        ranker = Reranker(ranking_model, verbose=0)
         docs =self.vector_database.similarity_search(query=query, k=top_k)
-        results = ranker.rank(query = query, docs = [doc.page_content for doc in docs])
-        return results
+        data = ranker.rank(query = query, docs = [doc.page_content for doc in docs])
+        # Extract the list of Result objects
+        results = next(item for item in data if item[0] == 'results')[1]
+
+        # Sort results by rank
+        sorted_results = sorted(results, key=lambda x: x.rank)
+
+        # Extract the text fields from the top 5 Result objects
+        top_5_texts = [result.text for result in sorted_results[:5]]
+        return  top_5_texts
     
     def ranked_retrieval_with_rephrasing(self, query: str, rephrasing_model: str, ranking_model:str, top_k: int =5):
         """
@@ -38,9 +43,12 @@ class Retriever:
             results = self.ranked_retrieval(query=new_query, ranking_model=ranking_model, top_k=top_k)
             docs.extend(results)
 
-        ranker = Reranker(ranking_model)
-        results = ranker.rank(query = query, docs = [doc.page_content for doc in docs])
-        return results
+        ranker = Reranker(ranking_model, verbose = 0)
+        data = ranker.rank(query = query, docs = [doc.page_content for doc in docs])
+        results = next(item for item in data if item[0] == 'results')[1]
+        sorted_results = sorted(results, key=lambda x: x.rank)
+        top_5_texts = [result.text for result in sorted_results[:5]]
+        return  top_5_texts
     
     def ranked_retrieval_with_llm(self, query: str, classifier_model:str, ranking_model:str, top_k: int =15):
         """
@@ -56,10 +64,15 @@ class Retriever:
                 yes_results.append(doc)
         
         if len(yes_results)>5:
-            ranker = Reranker(ranking_model)
-            results = ranker.rank(query = query, docs = [doc.page_content for doc in yes_results])
+            ranker = Reranker(ranking_model, verbose=0)
+            data = ranker.rank(query = query, docs = [doc.page_content for doc in yes_results])
+            results = next(item for item in data if item[0] == 'results')[1]
+            sorted_results = sorted(results, key=lambda x: x.rank)
+            top_5_texts = [result.text for result in sorted_results[:5]]
+        else:
+            top_5_texts = [doc.page_content for doc in results]
 
-        return results
+        return top_5_texts
 
 
 
