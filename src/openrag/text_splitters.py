@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, List
+from typing import Optional, List, Dict
 from langchain.docstore.document import Document
 from langchain.text_splitter import HTMLHeaderTextSplitter, CharacterTextSplitter, MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter,NLTKTextSplitter
 
@@ -39,7 +39,7 @@ class TextSplitter:
             docs.append(doc)
         return docs
 
-    def modify_splitter(self, data, splitter):
+    def modify_splitter(self, data, splitter, extra_metadata: Optional[Dict] = None):
         """
         Modifies the splitter based on the input data and the splitter type.
 
@@ -60,11 +60,13 @@ class TextSplitter:
 
             for document in documents:
                 document.metadata = doc.metadata
+                if extra_metadata:
+                    document.metadata.update(extra_metadata)
 
             results.extend(documents)
         return results
 
-    def split_to_documents(self, data: List[Document], chunk_size: int = 1000, chunk_overlap: int = 200, embedding_function: Optional[str] = None):
+    def split_to_documents(self, data: List[Document], chunk_size: int = 1000, chunk_overlap: int = 200, extra_metadata: Optional[Dict] = None):
         """
         Splits a list of Documents into smaller Documents based on the selected splitter.
 
@@ -80,27 +82,27 @@ class TextSplitter:
         if self.splitter == "htmlheader":
             #https://python.langchain.com/docs/modules/data_connection/document_transformers/HTML_header_metadata
             splitter = HTMLHeaderTextSplitter(headers_to_split_on= self.splitter_args)
-            return self.modify_splitter(data=data, splitter=splitter)
+            return self.modify_splitter(data=data, splitter=splitter, extra_metadata=extra_metadata)
         
         elif self.splitter == "character":
             #https://python.langchain.com/docs/modules/text_splitter/character_text_splitter
             splitter = CharacterTextSplitter(chunk_size = chunk_size, chunk_overlap = chunk_overlap)
-            return self.modify_splitter(data=data, splitter=splitter)
+            return self.modify_splitter(data=data, splitter=splitter, extra_metadata=extra_metadata)
         
         elif self.splitter == "markdownheader":
             #https://python.langchain.com/docs/modules/data_connection/document_transformers/markdown_header_metadata
             splitter = MarkdownHeaderTextSplitter(headers_to_split_on= self.splitter_args)
-            return self.modify_splitter(data=data, splitter=splitter)
+            return self.modify_splitter(data=data, splitter=splitter, extra_metadata=extra_metadata)
             
         elif self.splitter == "recursive":
             #https://python.langchain.com/docs/modules/data_connection/document_transformers/recursive_text_splitter
             splitter = RecursiveCharacterTextSplitter(chunk_size = chunk_size, chunk_overlap = chunk_overlap, separators =["\n\n"])
-            return self.modify_splitter(data=data, splitter=splitter)
+            return self.modify_splitter(data=data, splitter=splitter, extra_metadata=extra_metadata)
 
         elif self.splitter == "token":
             #https://python.langchain.com/docs/modules/data_connection/document_transformers/split_by_token
             splitter = NLTKTextSplitter(chunk_size = chunk_size)
-            return self.modify_splitter(data=data, splitter=splitter)
+            return self.modify_splitter(data=data, splitter=splitter, extra_metadata=extra_metadata)
         
         else:
-            raise ValueError('Invalid splitter value: Expecting one of htmlheader, character, markdown, recursive, semantic, or nltk')
+            raise ValueError('Invalid splitter value: Expecting one of htmlheader, character, markdownheader, recursive, or token')
