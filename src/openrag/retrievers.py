@@ -23,7 +23,9 @@ class Retriever:
         docs =self.vector_database.similarity_search(query=query, k=top_k, filter = filter)
         data = self.reranker.rank(query = query, docs = [doc.page_content for doc in docs])
         # Extract the list of Result objects
+        print(data)
         results = next(item for item in data if item[0] == 'results')[1]
+        print(results)
 
         # Sort results by rank
         sorted_results = sorted(results, key=lambda x: x.rank)
