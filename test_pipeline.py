@@ -40,9 +40,6 @@ def retrieval_pipeline(query: str, data_path: str,loader: str, splitter: str, ve
         retriever = Retriever(vector_index=vector_index, ranker = ranker)
         results = retriever.ranked_retrieval( query=query, top_k=15, filter = filter_params )
     
-    print(results)
-
-
     return results
 
 if __name__ == "__main__":
