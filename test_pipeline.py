@@ -39,6 +39,8 @@ def retrieval_pipeline(query: str, data_path: str,loader: str, splitter: str, ve
     elif retrieval_type == 'ranked':
         retriever = Retriever(vector_index=vector_index, ranker = ranker)
         results = retriever.ranked_retrieval( query=query, top_k=15, filter = filter_params )
+    
+    print(results)
 
 
     return results
