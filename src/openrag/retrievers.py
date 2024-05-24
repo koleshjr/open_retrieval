@@ -16,27 +16,40 @@ class Retriever:
         top_k_results = self.vector_database.similarity_search(query=query, k=top_k, filter=filter)
         return [doc.page_content for doc  in top_k_results]
     
+    # def ranked_retrieval(self, query: str, top_k: int = 15, filter: Optional[Dict[str, str]] = None):
+    #     """
+    #     Retrieval With reranking
+    #     """
+    #     docs =self.vector_database.similarity_search(query=query, k=top_k, filter = filter)
+    #     data = self.reranker.rank(query = query, docs = [doc.page_content for doc in docs])
+
+    #     results = next(item for item in data if item[0] == 'results')[1]
+    #     print(f"results: {results}")
+
+    #     # Sort results by rank
+    #     sorted_results = sorted(results, key=lambda x: x.rank)
+
+    #     # Extract the text fields from the top 5 Result objects
+    #     top_5_texts = [result.text for result in sorted_results[:5]]
+    #     return  top_5_texts
+
     def ranked_retrieval(self, query: str, top_k: int = 15, filter: Optional[Dict[str, str]] = None):
         """
         Retrieval With reranking
         """
-        docs =self.vector_database.similarity_search(query=query, k=top_k, filter = filter)
-        data = self.reranker.rank(query = query, docs = [doc.page_content for doc in docs])
-        # Extract the list of Result objects
-        print(f"data: {data}")
-        results = next(item for item in data if item[0] == 'results')[1]
-        print(f"results: {results}")
+        docs = self.vector_database.similarity_search(query=query, k=top_k, filter=filter)
+        data = self.reranker.rank(query=query, docs=[doc.page_content for doc in docs])
+        
+        # Ensure data is a list of Result objects
+        if not isinstance(data, list):
+            raise TypeError("Expected data to be a list of Result objects")
 
         # Sort results by rank
-        sorted_results = sorted(results, key=lambda x: x.rank)
+        sorted_results = sorted(data, key=lambda x: x.rank)
 
         # Extract the text fields from the top 5 Result objects
-        top_5_texts = [result.text for result in sorted_results[:5]]
-        return  top_5_texts
-    
-
-
-
+        top_5_texts = [result.document.text for result in sorted_results[:5]]
+        return top_5_texts
 
 
 
