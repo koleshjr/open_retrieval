@@ -7,41 +7,38 @@ from src.openrag.text_splitters import TextSplitter
 from src.openrag.embedding_providers import EmbeddingProvider
 from src.openrag.vector_databases import VectorDatabase
 from src.openrag.retrievers import Retriever
-from typing import Optional
+from typing import Optional, Union
+from rerankers import Reranker
 
-def retrieval_pipeline(query: str, data_path: str,  retrieval_type: str, embedding_provider: str, database: str, filter_field: Optional[str]=None) -> List[str]:
+def retrieval_pipeline(query: str, data_path: str,loader: str, splitter: str, vector_database:str, embedding_function: str, retrieval_type: str, index_name: str, filter_field: Optional[str]=None) -> List[str]:
     """
     Takes in a query and a list of documents paths and returns a list of top 5 documents that are related to the query
     """
-    index_name = f"{database}_index_{embedding_provider}"
     index_dir = 'tests/index/'
-    vector_database = VectorDatabase(vector_store=database)
-    embedding_provider = EmbeddingProvider(embedding_provider=embedding_provider)
-    embedding_function = embedding_provider.get_embedding_function()
 
     if not os.path.exists(os.path.join(index_dir,index_name)):
-        loader = DocumentLoader()
-        splitter = TextSplitter(splitter='recursive')
         all_documents = []
         for filename in os.listdir(data_path):
             filepath = os.path.join(data_path, filename)
             data = loader.load(filepath)
-            extra_metadata = {"file_name": filename}
+            print(filename.split('.')[0])
+            extra_metadata = {"file_name": filename.split('.')[0]}
             documents = splitter.split_to_documents(data, chunk_size = 800, chunk_overlap=0, extra_metadata=extra_metadata)
             all_documents.extend(documents)
         
         vector_index = vector_database.create_index(embedding_function=embedding_function,docs=all_documents, index_name=index_name,index_dir=index_dir)
     else:
-        vector_index = vector_database.create_index(index_name=index_name,index_dir=index_dir)
+        vector_index = vector_database.create_index(embedding_function=embedding_function, index_name=index_name,index_dir=index_dir)
 
     if filter_field:
         filter_params = {'file_name': filter_field}
 
-    retriever = Retriever(vector_index=vector_index)
     if retrieval_type == 'naive':
+        retriever = Retriever(vector_index=vector_index)
         results = retriever.naive_retrieval(query = query, top_k=5, filter = filter_params )
     elif retrieval_type == 'ranked':
-        results = retriever.ranked_retrieval( query=query,ranking_model="colbert", filter = filter_params )
+        retriever = Retriever(vector_index=vector_index, ranker = ranker)
+        results = retriever.ranked_retrieval( query=query, top_k=15, filter = filter_params )
 
 
     return results
@@ -50,10 +47,21 @@ if __name__ == "__main__":
     csv_path = 'data/Test.csv'
     data_path = 'data/rag_data'
     retrieval_type = 'ranked'
-    embedding_provider = 'qdrant'
+    embedding_provider = 'huggingface'
     database = 'chroma'
+    ranking_model = "colbert"
+    splitter_choice = 'recursive'
+    index_name = f"{database}_index_{embedding_provider}"
+
+    loader = DocumentLoader()
+    splitter = TextSplitter(splitter=splitter_choice)
+    ranker = Reranker(ranking_model, verbose=0)
+    vector_database = VectorDatabase(vector_store=database)
+    embedding_provider = EmbeddingProvider(embedding_provider=embedding_provider)
+    embedding_function = embedding_provider.get_embedding_function()
+
     df = pd.read_csv(csv_path)   
-    results = df.apply(lambda row: retrieval_pipeline(query=row['Query text'], data_path=data_path, retrieval_type=retrieval_type, embedding_provider=embedding_provider, database=database, filter_field=row['Document Title']), axis=1)
+    results = df.apply(lambda row: retrieval_pipeline(query=row['Query text'],data_path=data_path, loader=loader, splitter=splitter, vector_database=vector_database, embedding_function=embedding_function,index_name=index_name, retrieval_type=retrieval_type, filter_field=row['Document Title']), axis=1)
     results_df = pd.DataFrame({
         'Query No': df['Query No'],
         'Query text': df['Query text'],
@@ -66,7 +74,7 @@ if __name__ == "__main__":
         'Output_5': results.apply(lambda x: x[4])
     })
     os.makedirs('output',exist_ok=True)
-    results_df.to_csv(f'output/results_{embedding_provider}_{database}.csv', index=False)
+    results_df.to_csv(f'output/results_{index_name}.csv', index=False)
     
 
 

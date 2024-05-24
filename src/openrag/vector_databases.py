@@ -16,7 +16,7 @@ class VectorDatabase:
         self.vector_store = vector_store
         
 
-    def create_index(self, embedding_function: str, index_name: str, docs: Optional[List[Document]], index_dir: Optional[str] = None, **kwargs):
+    def create_index(self, embedding_function: str, index_name: str, docs: Optional[List[Document]]=None, index_dir: Optional[str] = None, **kwargs):
         """
         Creates an index for the given documents using the specified embedding function.
 
