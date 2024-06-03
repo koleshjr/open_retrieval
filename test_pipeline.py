@@ -1,11 +1,11 @@
 import os
 from typing import List
 import pandas as pd
-from src.open_rag.document_loaders import DocumentLoader
-from src.open_rag.text_splitters import TextSplitter
-from src.open_rag.embedding_providers import EmbeddingProvider
-from src.open_rag.vector_databases import VectorDatabase
-from src.open_rag.retrievers import Retriever
+from src.open_retrieval.document_loaders import DocumentLoader
+from src.open_retrieval.text_splitters import TextSplitter
+from src.open_retrieval.embedding_providers import EmbeddingProvider
+from src.open_retrieval.vector_databases import VectorDatabase
+from src.open_retrieval.retrievers import Retriever
 from typing import Optional
 from rerankers import Reranker
 
