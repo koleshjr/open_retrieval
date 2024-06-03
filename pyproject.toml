@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "open_retrieval"
-version = "0.0.1"
+version = "0.0.2"
 description = "A retrieval package build on top of Open source models"
 readme = "README.md"
 authors = [{ name = "Koleshjr", email = "koleshjr@gmail.com" }]
@@ -46,7 +46,7 @@ Homepage = "https://github.com/koleshjr/open_retrieval"
 
 
 [tool.bumpver]
-current_version = "0.0.1"
+current_version = "0.0.2"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message = "bump version {old_version} -> {new_version}"
 tag_message = "{new_version}"
