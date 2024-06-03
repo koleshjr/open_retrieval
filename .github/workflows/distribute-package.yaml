@@ -1,7 +1,7 @@
 name: Build and Publish open_rag distribution to PyPI
 
 on:
-  push:
+  merge:
     branches:
       - main
 
