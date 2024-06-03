@@ -2,7 +2,7 @@ import sys
 import os
 import pytest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from src.openrag.embedding_providers import EmbeddingProvider
+from src.open_rag.embedding_providers import EmbeddingProvider
 
 class TestEmbeddingProvider:
     @pytest.fixture
