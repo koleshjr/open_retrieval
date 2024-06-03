@@ -1,12 +1,11 @@
 import os
-from typing import List
+from typing import List, Optional
 import pandas as pd
 from src.open_retrieval.document_loaders import DocumentLoader
 from src.open_retrieval.text_splitters import TextSplitter
 from src.open_retrieval.embedding_providers import EmbeddingProvider
 from src.open_retrieval.vector_databases import VectorDatabase
 from src.open_retrieval.retrievers import Retriever
-from typing import Optional
 from rerankers import Reranker
 
 def retrieval_pipeline(query: str, data_path: str,loader: str, splitter: str, vector_database:str, embedding_function: str, retrieval_type: str, index_name: str, filter_field: Optional[str]=None) -> List[str]:
