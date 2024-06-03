@@ -1,5 +1,5 @@
 # **openrag**
-![OPENRAG](images\openrag.jpg)
+![OPENRAG](images/openrag.jpg)
 * A Python package based on langchain that abstracts RAG (Retrieval-Augmented Generation) utilities, providing unified document loaders, embedding models, text splitters, vector databases and retrievers in one package based on open source models.
 * No api keys needed
 
