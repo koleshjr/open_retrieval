@@ -8,15 +8,15 @@ from src.open_retrieval.text_splitters import TextSplitter
 class TestTextSplitter:
     document_loader = DocumentLoader()
 
-    # @pytest.fixture
-    # def html_text_splitter(self):
-    #     return TextSplitter(splitter='htmlheader', splitter_args=[("h1", "Header 1"),("h2", "Header 2"),("h3", "Header 3"),("h4", "Header 4"),])
+    @pytest.fixture
+    def html_text_splitter(self):
+        return TextSplitter(splitter='htmlheader', splitter_args=[("h1", "Header 1"),("h2", "Header 2"),("h3", "Header 3"),("h4", "Header 4"),])
     
-    # def test_split_html(self,html_text_splitter):
-    #     file_path = "tests/test_data/html5.html"
-    #     data = self.document_loader.load(file_path=file_path)
-    #     documents = html_text_splitter.split(data)
-    #     assert len(documents) > 0
+    def test_split_html(self,html_text_splitter):
+        file_path = "tests/test_data/html5.html"
+        data = self.document_loader.load(file_path=file_path)
+        documents = html_text_splitter.split(data)
+        assert len(documents) > 0
 
     @pytest.fixture
     def character_text_splitter(self):
