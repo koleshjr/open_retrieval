@@ -1,9 +1,6 @@
 name: Build and Publish open_rag distribution to PyPI
 
-on:
-  merge:
-    branches:
-      - main
+on: [pull_request]
 
 jobs:
   build:
