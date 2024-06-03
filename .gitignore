@@ -4,3 +4,7 @@ __pycache__/
 *.pyo
 /tests/index/
 /__pycache__
+.conda
+dist
+.pytest_cache
+src/openrag.egg-info/

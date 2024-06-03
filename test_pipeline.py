@@ -1,13 +1,12 @@
 import os
 from typing import List
 import pandas as pd
-from pathlib import Path
 from src.openrag.document_loaders import DocumentLoader
 from src.openrag.text_splitters import TextSplitter
 from src.openrag.embedding_providers import EmbeddingProvider
 from src.openrag.vector_databases import VectorDatabase
 from src.openrag.retrievers import Retriever
-from typing import Optional, Union
+from typing import Optional
 from rerankers import Reranker
 
 def retrieval_pipeline(query: str, data_path: str,loader: str, splitter: str, vector_database:str, embedding_function: str, retrieval_type: str, index_name: str, filter_field: Optional[str]=None) -> List[str]:
@@ -23,7 +22,7 @@ def retrieval_pipeline(query: str, data_path: str,loader: str, splitter: str, ve
             data = loader.load(filepath)
             print(filename.split('.')[0])
             extra_metadata = {"file_name": filename.split('.')[0]}
-            documents = splitter.split_to_documents(data, chunk_size = 800, chunk_overlap=0, extra_metadata=extra_metadata)
+            documents = splitter.split(data, chunk_size = 800, chunk_overlap=0, extra_metadata=extra_metadata)
             all_documents.extend(documents)
         
         vector_index = vector_database.create_index(embedding_function=embedding_function,docs=all_documents, index_name=index_name,index_dir=index_dir)
@@ -38,7 +37,7 @@ def retrieval_pipeline(query: str, data_path: str,loader: str, splitter: str, ve
         results = retriever.naive_retrieval(query = query, top_k=5, filter = filter_params )
     elif retrieval_type == 'ranked':
         retriever = Retriever(vector_index=vector_index, ranker = ranker)
-        results = retriever.ranked_retrieval( query=query, top_k=15, filter = filter_params )
+        results = retriever.ranked_retrieval( query=query, top_k=15, ranked_top_k=5, filter = filter_params )
     
     return results
 
@@ -46,7 +45,7 @@ if __name__ == "__main__":
     csv_path = 'data/Test.csv'
     data_path = 'data/rag_data'
     retrieval_type = 'ranked'
-    embedding_provider = 'huggingface'
+    embedding_provider = 'huggingface' #fastembed
     database = 'chroma'
     ranking_model = "colbert"
     splitter_choice = 'recursive'

@@ -15,8 +15,16 @@ class TestEmbeddingProvider:
 
     @pytest.fixture
     def qdrant_embedding_provider(self):
-        return EmbeddingProvider(embedding_provider="qdrant")
+        return EmbeddingProvider(embedding_provider="fastembed")
 
     def test_get_embedding_function_qdrant(self, qdrant_embedding_provider):
-        embedding_function = qdrant_embedding_provider.get_embedding_function()
+        embedding_function = qdrant_embedding_provider.get_embedding_function(model_name = "BAAI/bge-base-en-v1.5")
+        assert embedding_function is not None 
+
+    @pytest.fixture
+    def ollama_embedding_provider(self):
+        return EmbeddingProvider(embedding_provider="ollama")
+
+    def test_get_embedding_function_ollama(self, ollama_embedding_provider):
+        embedding_function = ollama_embedding_provider.get_embedding_function()
         assert embedding_function is not None 

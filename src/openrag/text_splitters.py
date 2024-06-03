@@ -66,7 +66,7 @@ class TextSplitter:
             results.extend(documents)
         return results
 
-    def split_to_documents(self, data: List[Document], chunk_size: int = 1000, chunk_overlap: int = 200, extra_metadata: Optional[Dict] = None):
+    def split(self, data: List[Document], chunk_size: int = 1000, chunk_overlap: int = 200, extra_metadata: Optional[Dict] = None):
         """
         Splits a list of Documents into smaller Documents based on the selected splitter.
 
