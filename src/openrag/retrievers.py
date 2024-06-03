@@ -1,40 +1,28 @@
 from rerankers import Reranker
-from src.openrag.utils.llms import Llm
-from src.openrag.utils.rephrasor import Rephrasor
-from src.openrag.utils.classifier import Classifier
-from src.openrag.utils.config import Config
+from typing import Optional, Dict
 class Retriever:
-    def __init__(self, vector_index):
+    def __init__(self, vector_index, ranker: Optional[Reranker] = None):
         self.vector_database = vector_index
+        self.reranker = ranker
         
-    def naive_retrieval(self, query: str, top_k: int = 5 ):
+    def naive_retrieval(self, query: str, top_k: int = 5, filter: Optional[Dict[str, str]] = None ):
         """
         Naive Retrieval
         """
-        top_k_results = self.vector_database.similarity_search(query=query, k=top_k)
-        return top_k_results
+        top_k_results = self.vector_database.similarity_search(query=query, k=top_k, filter=filter)
+        return [doc.page_content for doc  in top_k_results]
     
-    def ranked_retrieval(self, query: str,ranking_model:str, top_k: int = 15, ):
+    def ranked_retrieval(self, query: str, top_k: int = 15, ranked_top_k: int = 5, filter: Optional[Dict[str, str]] = None):
         """
         Retrieval With reranking
         """
-        ranker = Reranker(ranking_model, verbose=0)
-        docs =self.vector_database.similarity_search(query=query, k=top_k)
-        data = ranker.rank(query = query, docs = [doc.page_content for doc in docs])
-        # Extract the list of Result objects
-        results = next(item for item in data if item[0] == 'results')[1]
-
+        docs =self.vector_database.similarity_search(query=query, k=top_k, filter = filter)
+        data = self.reranker.rank(query = query, docs = [doc.page_content for doc in docs])
+      
         # Sort results by rank
-        sorted_results = sorted(results, key=lambda x: x.rank)
+        sorted_results = sorted(data.results, key=lambda x: x.rank)
 
         # Extract the text fields from the top 5 Result objects
-        top_5_texts = [result.text for result in sorted_results[:5]]
+        top_5_texts = [result.text for result in sorted_results[:ranked_top_k]]
         return  top_5_texts
-    
-
-
-
-
-
-
 

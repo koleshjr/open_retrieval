@@ -38,13 +38,13 @@ class EmbeddingProvider:
                 return OllamaEmbeddings()
 
 
-        elif self.embedding_provider == 'qdrant':
+        elif self.embedding_provider == 'fastembed':
             # Assuming FastEmbedEmbeddings doesn't require any API key
             if model_name:
-                return FastEmbedEmbeddings(model_name)
+                return FastEmbedEmbeddings(model_name = model_name)
             else:
                 return FastEmbedEmbeddings(model_name = "BAAI/bge-large-en-v1.5")
 
         else:
             raise ValueError(
-                f"Embedding provider {self.embedding_provider} is not supported. We currently support huggingface, qdrant and ollama as embedding providers")
+                f"Embedding provider {self.embedding_provider} is not supported. We currently support huggingface, fastembed and ollama as embedding providers")

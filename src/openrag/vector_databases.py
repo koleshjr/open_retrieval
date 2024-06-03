@@ -16,7 +16,7 @@ class VectorDatabase:
         self.vector_store = vector_store
         
 
-    def create_index(self, embedding_function: str, docs: List[Document], index_name: str, index_dir: Optional[str] = None, **kwargs):
+    def create_index(self, embedding_function: str, index_name: str, docs: Optional[List[Document]]=None, index_dir: Optional[str] = None, **kwargs):
         """
         Creates an index for the given documents using the specified embedding function.
 
@@ -43,8 +43,9 @@ class VectorDatabase:
             return os.path.exists(index_path)
 
         if self.vector_store == 'chroma':
+
             if index_exists(persist_directory):
-                vector_index = Chroma(persist_directory=persist_directory, embedding_function=embedding_function)
+                vector_index = Chroma(persist_directory=persist_directory, embedding_function=embedding_function )
             else:
                 vector_index = Chroma.from_documents(docs, embedding_function, persist_directory=persist_directory)
                 vector_index.persist()
@@ -88,7 +89,7 @@ class VectorDatabase:
 
         elif self.vector_store == 'faiss':
             if index_exists(os.path.join(index_dir, index_name)):
-                vector_index = FAISS.load_local(folder_path=os.path.join(index_dir,index_name), embeddings=embedding_function, index_name='index', allow_dangerous_deserialization=True)
+                vector_index = FAISS.load_local(persist_directory, embeddings=embedding_function, allow_dangerous_deserialization=True)
             else:
                 vector_index = FAISS.from_documents(docs, embedding_function)
                 vector_index.save_local(persist_directory)
